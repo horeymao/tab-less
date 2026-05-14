@@ -103,6 +103,31 @@ header {
   transform: translateY(-1px);
 }
 
+/* ---- Drag-and-drop reordering ---- */
+.quick-link.dragging {
+  opacity: 0.35;
+}
+
+.quick-link.dragging:hover {
+  box-shadow: none;
+  transform: none;
+}
+
+.quick-link.drag-before::before,
+.quick-link.drag-after::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--theme-text, var(--brand-text));
+  pointer-events: none;
+}
+
+.quick-link.drag-before::before { left: -7px; }
+.quick-link.drag-after::after  { right: -7px; }
+
 .quick-link .avatar {
   position: relative;
   width: 20px;

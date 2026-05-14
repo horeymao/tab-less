@@ -202,10 +202,10 @@ async function renderQuickLinks() {
     try { host = new URL(link.url).hostname; } catch {}
     const faviconUrl = host ? `https://www.google.com/s2/favicons?domain=${host}&sz=64` : '';
     return `
-      <a class="quick-link" href="${escapeAttr(link.url)}" style="${themeStyle(theme)}" data-link-id="${escapeAttr(link.id)}">
+      <a class="quick-link" draggable="true" href="${escapeAttr(link.url)}" style="${themeStyle(theme)}" data-link-id="${escapeAttr(link.id)}">
         <span class="avatar">
           <span class="avatar-letter">${escapeHtml(initial)}</span>
-          ${faviconUrl ? `<img class="avatar-img" src="${escapeAttr(faviconUrl)}" alt="" onerror="this.remove()">` : ''}
+          ${faviconUrl ? `<img class="avatar-img" src="${escapeAttr(faviconUrl)}" alt="" onerror="this.remove()" draggable="false">` : ''}
         </span>
         <span class="label">${escapeHtml(link.title)}</span>
         <button class="quick-link-remove" data-action="remove-quick-link" data-link-id="${escapeAttr(link.id)}" title="Remove shortcut">
@@ -1016,6 +1016,84 @@ document.addEventListener('keydown', (e) => {
     if (m && m.style.display !== 'none') closeShortcutModal();
   }
 });
+
+
+/* ----------------------------------------------------------------
+   QUICK LINKS — drag-and-drop reordering
+   ---------------------------------------------------------------- */
+
+(function wireQuickLinkDnD() {
+  const container = document.getElementById('quickLinks');
+  if (!container) return;
+
+  let dragSrcId = null;
+
+  function clearIndicators() {
+    container.querySelectorAll('.drag-before, .drag-after').forEach(el => {
+      el.classList.remove('drag-before', 'drag-after');
+    });
+  }
+
+  container.addEventListener('dragstart', (e) => {
+    const link = e.target.closest('.quick-link');
+    if (!link) return;
+    dragSrcId = link.dataset.linkId;
+    link.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    // Some browsers require data to start a drag at all
+    try { e.dataTransfer.setData('text/plain', dragSrcId); } catch {}
+  });
+
+  container.addEventListener('dragend', () => {
+    container.querySelectorAll('.quick-link').forEach(el => el.classList.remove('dragging'));
+    clearIndicators();
+    dragSrcId = null;
+  });
+
+  container.addEventListener('dragover', (e) => {
+    if (!dragSrcId) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+
+    clearIndicators();
+    const target = e.target.closest('.quick-link');
+    if (target && target.dataset.linkId !== dragSrcId) {
+      const rect = target.getBoundingClientRect();
+      const before = e.clientX < rect.left + rect.width / 2;
+      target.classList.add(before ? 'drag-before' : 'drag-after');
+    }
+  });
+
+  container.addEventListener('drop', async (e) => {
+    if (!dragSrcId) return;
+    e.preventDefault();
+    const srcId = dragSrcId;
+    const target = e.target.closest('.quick-link');
+
+    const links = await getQuickLinks();
+    const srcIdx = links.findIndex(l => l.id === srcId);
+    if (srcIdx === -1) return;
+    const [src] = links.splice(srcIdx, 1);
+
+    if (!target || target.dataset.linkId === srcId) {
+      // Dropped on the add button or empty space → move to end
+      links.push(src);
+    } else {
+      const rect = target.getBoundingClientRect();
+      const before = e.clientX < rect.left + rect.width / 2;
+      let tIdx = links.findIndex(l => l.id === target.dataset.linkId);
+      if (tIdx === -1) {
+        links.push(src);
+      } else {
+        if (!before) tIdx++;
+        links.splice(tIdx, 0, src);
+      }
+    }
+
+    await saveQuickLinks(links);
+    await renderQuickLinks();
+  });
+})();
 
 
 /* ----------------------------------------------------------------
