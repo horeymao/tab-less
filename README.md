@@ -22,13 +22,15 @@ The agent will walk you through it. Takes about 1 minute.
 
 ## Features
 
-- **See all your tabs at a glance** on a clean grid, grouped by domain
+- **Bento dashboard** open tabs grouped by domain on a clean, color-coded masonry grid (6 rotating themes)
 - **Homepages group** pulls Gmail inbox, X home, YouTube, LinkedIn, GitHub homepages into one card
-- **Close tabs with style** with swoosh sound + confetti burst
-- **Duplicate detection** flags when you have the same page open twice, with one-click cleanup
+- **Quick links / shortcuts** pin your most-used sites at the top, add or remove anytime
+- **Rainbow greeting** "Good afternoon" with each letter in a different theme color
+- **Close tabs with style** swoosh sound + confetti burst in the theme palette
+- **Themed toast** confirmation pops up bordered in the color of the card you just acted on
+- **Duplicate detection** the same page open twice gets a `2x` badge on the row
 - **Click any tab to jump to it** across windows, no new tab opened
-- **Save for later** bookmark tabs to a checklist before closing them
-- **Localhost grouping** shows port numbers next to each tab so you can tell your vibe coding projects apart
+- **Localhost grouping** port numbers prefix the title so you can tell projects apart
 - **Expandable groups** show the first 8 tabs with a clickable "+N more"
 - **100% local** your data never leaves your machine
 - **Pure Chrome extension** no server, no Node.js, no npm, no setup beyond loading the extension
@@ -60,14 +62,14 @@ You'll see Tab Out.
 
 ```
 You open a new tab
-  -> Tab Out shows your open tabs grouped by domain
+  -> Tab Out shows your open tabs grouped by domain, themed in 6 rotating colors
   -> Homepages (Gmail, X, etc.) get their own group at the top
-  -> Click any tab title to jump to it
-  -> Close groups you're done with (swoosh + confetti)
-  -> Save tabs for later before closing them
+  -> Pinned shortcuts sit at the top for one-click jumps
+  -> Click any tab title to focus it across windows
+  -> Close tabs or whole groups (swoosh + confetti)
 ```
 
-Everything runs inside the Chrome extension. No external server, no API calls, no data sent anywhere. Saved tabs are stored in `chrome.storage.local`.
+Everything runs inside the Chrome extension. No external server, no API calls, no data sent anywhere. Your pinned shortcuts are stored in `chrome.storage.local`.
 
 ---
 

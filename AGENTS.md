@@ -8,15 +8,16 @@ You're installing **Tab Out** for the user. Your job is not just to set it up --
 
 Before doing anything technical, tell the user what they're about to get:
 
-> **Tab Out** replaces your new tab page with a clean dashboard of everything you have open, grouped by domain.
+> **Tab Out** replaces your new tab page with a clean bento dashboard of everything you have open, grouped by domain.
 >
 > Here's what makes it great:
-> - **See all your open tabs at a glance** grouped by domain on a grid
+> - **Bento dashboard** open tabs grouped by domain on a color-coded masonry grid (6 rotating themes)
 > - **Homepages group** pulls Gmail, X, LinkedIn, YouTube, GitHub homepages into one card for easy cleanup
-> - **Close tabs with style** satisfying swoosh sound + confetti burst
-> - **Duplicate detection** flags when you have the same page open twice
+> - **Quick links / shortcuts** pin your most-used sites at the top, add or remove anytime
+> - **Rainbow greeting** every letter of "Good afternoon" gets a different theme color
+> - **Close tabs with style** satisfying swoosh sound + confetti burst, themed toast confirms each action
+> - **Duplicate detection** the same page open twice gets a `2x` badge on the row
 > - **Click any tab title to jump to it** even across different Chrome windows
-> - **Save for later** bookmark individual tabs to a checklist before closing them
 > - **100% local** no server, no accounts, no data sent anywhere
 >
 > It's just a Chrome extension. Setup takes about 1 minute.
@@ -76,13 +77,13 @@ Once the extension is loaded:
 > You're all set! Open a **new tab** and you'll see Tab Out.
 >
 > Here's how it works:
-> 1. **Your open tabs are grouped by domain** in a grid layout.
+> 1. **Your open tabs are grouped by domain** on a color-coded bento grid.
 > 2. **Homepages** (Gmail inbox, X home, YouTube, etc.) are in their own group at the top.
-> 3. **Click any tab title** to jump directly to that tab.
-> 4. **Click the X** next to any tab to close just that one (with swoosh + confetti).
-> 5. **Click "Close all N tabs"** on a group to close the whole thing.
-> 6. **Duplicate tabs** are flagged with an amber "(2x)" badge. Click "Close duplicates" to keep one copy.
-> 7. **Save a tab for later** by clicking the bookmark icon before closing it. Saved tabs appear in the sidebar.
+> 3. **Quick-link shortcuts** sit at the top — click the `+ Shortcut` chip to pin a new site, hover an existing one and click the `×` to remove it.
+> 4. **Click any tab title** to jump directly to that tab, even in another Chrome window.
+> 5. **Hover a tab row** and click the `×` to close just that one (swoosh + confetti).
+> 6. **Click "Close all N tabs"** at the bottom of a card to close the whole group.
+> 7. **Duplicate tabs** are flagged with a colored `2x` badge on the row.
 >
 > That's it! No server to run, no config files. Everything works right away.
 
@@ -91,6 +92,6 @@ Once the extension is loaded:
 ## Key Facts
 
 - Tab Out is a pure Chrome extension. No server, no Node.js, no npm.
-- Saved tabs are stored in `chrome.storage.local` (persists across sessions).
+- Pinned shortcuts are stored in `chrome.storage.local` (persists across sessions).
 - 100% local. No data is sent to any external service.
 - To update: `cd tab-out && git pull`, then reload the extension in `chrome://extensions`.
