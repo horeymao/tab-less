@@ -1,6 +1,6 @@
-# AGENTS.md -- Tab Out: Setup & Onboarding Guide for Coding Agents
+# AGENTS.md -- Tab Less: Setup & Onboarding Guide for Coding Agents
 
-You're installing **Tab Out** for the user. Your job is not just to set it up -- it's to get them excited about using it.
+You're installing **Tab Less** for the user. Your job is not just to set it up -- it's to get them excited about using it.
 
 ---
 
@@ -8,7 +8,7 @@ You're installing **Tab Out** for the user. Your job is not just to set it up --
 
 Before doing anything technical, tell the user what they're about to get:
 
-> **Tab Out** replaces your new tab page with a clean bento dashboard of everything you have open, grouped by domain.
+> **Tab Less** replaces your new tab page with a clean bento dashboard of everything you have open, grouped by domain.
 >
 > Here's what makes it great:
 > - **Bento dashboard** open tabs grouped by domain on a color-coded masonry grid (6 rotating themes)
@@ -61,7 +61,7 @@ open "chrome://extensions"
 > 3. A file picker will open. **Press Cmd+Shift+G** (Mac) or **Ctrl+L** (Windows/Linux) to open the "Go to folder" bar, then **paste** the path I copied (Cmd+V / Ctrl+V) and press Enter.
 > 4. Click **"Select"** or **"Open"** and the extension will install.
 >
-> You should see "Tab Out" appear in your extensions list.
+> You should see "Tab Less" appear in your extensions list.
 
 **Also**, open the file browser directly to the extension folder as a fallback:
 - macOS: `open extension/`
@@ -74,7 +74,7 @@ open "chrome://extensions"
 
 Once the extension is loaded:
 
-> You're all set! Open a **new tab** and you'll see Tab Out.
+> You're all set! Open a **new tab** and you'll see Tab Less.
 >
 > Here's how it works:
 > 1. **Your open tabs are grouped by domain** on a color-coded bento grid.
@@ -91,7 +91,7 @@ Once the extension is loaded:
 
 ## Key Facts
 
-- Tab Out is a pure Chrome extension. No server, no Node.js, no npm.
+- Tab Less is a pure Chrome extension. No server, no Node.js, no npm.
 - Pinned shortcuts are stored in `chrome.storage.local` (persists across sessions).
 - 100% local. No data is sent to any external service.
 - To update: `cd tab-out && git pull`, then reload the extension in `chrome://extensions`.

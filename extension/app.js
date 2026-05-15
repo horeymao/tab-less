@@ -1,5 +1,5 @@
 /* ================================================================
-   Tab Out — Dashboard App (Bento Edition)
+   Tab Less — Dashboard App (Bento Edition)
 
    Reads tabs from chrome.tabs, groups by domain, renders a 6-color
    masonry of cards plus user-defined quick-link shortcuts.
@@ -376,6 +376,13 @@ function getGreeting() {
   return 'Good evening';
 }
 
+function getGreetingEmoji() {
+  const hour = new Date().getHours();
+  if (hour < 12) return '☀️';
+  if (hour < 17) return '🌞';
+  return '🌙';
+}
+
 function getDateDisplay() {
   return new Date().toLocaleDateString('en-US', {
     weekday: 'long',
@@ -384,6 +391,8 @@ function getDateDisplay() {
     day:     'numeric',
   });
 }
+
+let _lastGreeting = '';
 
 function renderRainbowGreeting() {
   const el = document.getElementById('greeting');
@@ -400,6 +409,14 @@ function renderRainbowGreeting() {
     span.style.color = ACCENT_COLORS[Math.floor(Math.random() * ACCENT_COLORS.length)];
     el.appendChild(span);
   }
+  // Emoji at the end, not colored — kept as one atomic unit so multi-codepoint
+  // emojis like ☀️ (U+2600 U+FE0F) don't get split across spans.
+  el.appendChild(document.createTextNode(' '));
+  const emoji = document.createElement('span');
+  emoji.className = 'greeting-emoji';
+  emoji.textContent = getGreetingEmoji();
+  el.appendChild(emoji);
+  _lastGreeting = text;
 }
 
 
@@ -836,7 +853,7 @@ async function renderDashboard() {
     checkAndShowEmptyState();
   }
 
-  // --- Tab Out duplicate banner ---
+  // --- Tab Less duplicate banner ---
   checkTabOutDupes();
 }
 
@@ -878,10 +895,12 @@ document.addEventListener('click', async (e) => {
     return;
   }
 
-  // Close all duplicate Tab Out new-tab pages
+  // Close all duplicate Tab Less new-tab pages
   if (action === 'close-tabout-dupes') {
     const banner = document.getElementById('tabOutDupeBanner');
     const themeColor = SESSION_THEME.text;
+    const btnRect = actionEl.getBoundingClientRect();
+    shootConfetti(btnRect.left + btnRect.width / 2, btnRect.top + btnRect.height / 2);
     await closeTabOutDupes();
     playCloseSound();
     if (banner) {
@@ -1094,6 +1113,32 @@ document.addEventListener('keydown', (e) => {
     await renderQuickLinks();
   });
 })();
+
+
+/* ----------------------------------------------------------------
+   CLOCK SYNC — refresh greeting + date as the hour rolls over
+   ---------------------------------------------------------------- */
+
+function syncClock() {
+  const greetingEl = document.getElementById('greeting');
+  const dateEl     = document.getElementById('dateDisplay');
+  if (!greetingEl || !dateEl) return;
+
+  // Only re-render the rainbow when the greeting text actually changes,
+  // so the per-letter colors don't flicker every tick.
+  if (_lastGreeting !== getGreeting()) {
+    renderRainbowGreeting();
+  }
+  const dateText = getDateDisplay();
+  if (dateEl.textContent !== dateText) {
+    dateEl.textContent = dateText;
+  }
+}
+
+setInterval(syncClock, 30 * 1000);
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) syncClock();
+});
 
 
 /* ----------------------------------------------------------------

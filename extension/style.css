@@ -1,5 +1,5 @@
 /* ============================================================
-   Tab Out — bento dashboard
+   Tab Less — bento dashboard
    White background, DM Sans, 6 rotating card themes.
    Themes are passed in per-card via --theme-bg / --theme-text
    inline styles from app.js.
@@ -37,7 +37,7 @@ body {
 header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: flex-end;
   margin-bottom: 24px;
 }
 
@@ -54,16 +54,12 @@ header {
   transition: color 0.4s ease;
 }
 
-.header-left .date {
+.header-left .date,
+.header-right {
   font-size: 12px;
+  line-height: 1.4;
   color: var(--brand-muted);
   font-weight: 400;
-}
-
-.header-right {
-  font-size: 13px;
-  color: var(--brand-muted);
-  margin-top: 8px;
 }
 
 .header-divider {
@@ -216,7 +212,7 @@ header {
 
 .quick-link-add svg { width: 14px; height: 14px; }
 
-/* ---- Tab Out Dupes Banner ---- */
+/* ---- Tab Less Dupes Banner ---- */
 .tab-cleanup-banner {
   border-radius: 20px;
   padding: 18px 22px;

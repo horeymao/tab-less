@@ -1,8 +1,8 @@
-# Tab Out
+# Tab Less
 
 **Keep tabs on your tabs.**
 
-Tab Out is a Chrome extension that replaces your new tab page with a dashboard of everything you have open. Tabs are grouped by domain, with homepages (Gmail, X, LinkedIn, etc.) pulled into their own group. Close tabs with a satisfying swoosh + confetti.
+Tab Less is a Chrome extension that replaces your new tab page with a dashboard of everything you have open. Tabs are grouped by domain, with homepages (Gmail, X, LinkedIn, etc.) pulled into their own group. Close tabs with a satisfying swoosh + confetti.
 
 No server. No account. No external API calls. Just a Chrome extension.
 
@@ -54,7 +54,7 @@ git clone https://github.com/zarazhangrui/tab-out.git
 
 **3. Open a new tab**
 
-You'll see Tab Out.
+You'll see Tab Less.
 
 ---
 
@@ -62,7 +62,7 @@ You'll see Tab Out.
 
 ```
 You open a new tab
-  -> Tab Out shows your open tabs grouped by domain, themed in 6 rotating colors
+  -> Tab Less shows your open tabs grouped by domain, themed in 6 rotating colors
   -> Homepages (Gmail, X, etc.) get their own group at the top
   -> Pinned shortcuts sit at the top for one-click jumps
   -> Click any tab title to focus it across windows
