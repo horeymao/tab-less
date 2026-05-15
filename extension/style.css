@@ -18,11 +18,16 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
+html { height: 100%; }
+
 body {
   font-family: 'DM Sans', "PingFang SC", "Microsoft YaHei", -apple-system, sans-serif;
   background: var(--brand-bg);
   color: var(--brand-text);
-  min-height: 100vh;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -30,15 +35,41 @@ body {
 .container {
   max-width: 1440px;
   margin: 0 auto;
-  padding: 48px 32px 96px;
+  padding: 0 32px 96px;
 }
 
-/* ---- Header ---- */
+/* ---- Scroll area — the only scrollable region; its scrollbar sits
+   below the header, not through it. ---- */
+.scroll-area {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+
+/* ---- Header — fixed greeting bar, pinned above the scroll area.
+   Full-width with a reserved scrollbar gutter so its centered content
+   lines up pixel-for-pixel with the scrolling content below. ---- */
 header {
+  flex: 0 0 auto;
+  width: 100%;
+  background: var(--brand-bg);
+  overflow: hidden;
+  scrollbar-gutter: stable;
+}
+
+.header-bar {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 32px;
+}
+
+.header-row {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  margin-bottom: 24px;
+  padding: 48px 0 24px;
+  border-bottom: 1px solid var(--brand-border);
 }
 
 .header-left h1 {
@@ -62,18 +93,12 @@ header {
   font-weight: 400;
 }
 
-.header-divider {
-  height: 1px;
-  background: var(--brand-border);
-  width: 100%;
-  margin-bottom: 24px;
-}
-
 /* ---- Quick Links / Shortcuts ---- */
 .quick-links {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
+  margin-top: 24px;
   margin-bottom: 32px;
 }
 

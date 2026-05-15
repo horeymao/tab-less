@@ -11,20 +11,28 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="container">
 
-  <!-- ================================================================
-       HEADER — rainbow greeting on the left, byline on the right
-       ================================================================ -->
-  <header>
-    <div class="header-left">
-      <h1 id="greeting"></h1>
-      <div class="date" id="dateDisplay"></div>
+<!-- ================================================================
+     HEADER — fixed greeting bar; pinned at the top, never scrolls.
+     rainbow greeting on the left, byline on the right
+     ================================================================ -->
+<header>
+  <div class="header-bar">
+    <div class="header-row">
+      <div class="header-left">
+        <h1 id="greeting"></h1>
+        <div class="date" id="dateDisplay"></div>
+      </div>
+      <div class="header-right" id="headerByline">created by horey</div>
     </div>
-    <div class="header-right" id="headerByline">created by horey</div>
-  </header>
+  </div>
+</header>
 
-  <div class="header-divider"></div>
+<!-- ================================================================
+     SCROLL AREA — the only scrollable region; the header stays above it
+     ================================================================ -->
+<div class="scroll-area">
+<div class="container">
 
   <!-- ================================================================
        QUICK LINKS — themed shortcut chips + "Add shortcut" button
@@ -62,6 +70,7 @@
   </div>
 
 </div><!-- end .container -->
+</div><!-- end .scroll-area -->
 
 <!-- ================================================================
      TOAST — themed border + icon match the action's card color
@@ -96,7 +105,7 @@
   </div>
 </div>
 
-<script src="config.local.js" onerror="/* no personal config, that's fine */"></script>
+<script src="config.local.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
