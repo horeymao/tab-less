@@ -244,36 +244,8 @@ function closeShortcutModal() {
 
 
 /* ----------------------------------------------------------------
-   UI HELPERS — sound, confetti, toast, empty state
+   UI HELPERS — confetti, toast, empty state
    ---------------------------------------------------------------- */
-
-function playCloseSound() {
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const t = ctx.currentTime;
-    const duration = 0.25;
-    const buffer = ctx.createBuffer(1, ctx.sampleRate * duration, ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < data.length; i++) {
-      const pos = i / data.length;
-      const env = pos < 0.1 ? pos / 0.1 : Math.pow(1 - (pos - 0.1) / 0.9, 1.5);
-      data[i] = (Math.random() * 2 - 1) * env;
-    }
-    const source = ctx.createBufferSource();
-    source.buffer = buffer;
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'bandpass';
-    filter.Q.value = 2.0;
-    filter.frequency.setValueAtTime(4000, t);
-    filter.frequency.exponentialRampToValueAtTime(400, t + duration);
-    const gain = ctx.createGain();
-    gain.gain.setValueAtTime(0.15, t);
-    gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
-    source.connect(filter).connect(gain).connect(ctx.destination);
-    source.start(t);
-    setTimeout(() => ctx.close(), 500);
-  } catch {}
-}
 
 function shootConfetti(x, y) {
   const particleCount = 17;
@@ -902,7 +874,6 @@ document.addEventListener('click', async (e) => {
     const btnRect = actionEl.getBoundingClientRect();
     shootConfetti(btnRect.left + btnRect.width / 2, btnRect.top + btnRect.height / 2);
     await closeTabOutDupes();
-    playCloseSound();
     if (banner) {
       banner.style.transition = 'opacity 0.3s ease';
       banner.style.opacity = '0';
@@ -943,8 +914,6 @@ document.addEventListener('click', async (e) => {
     if (match) await chrome.tabs.remove(match.id);
     await fetchOpenTabs();
 
-    playCloseSound();
-
     const chip = actionEl.closest('.page-chip');
     if (chip) {
       const rect = chip.getBoundingClientRect();
@@ -981,7 +950,6 @@ document.addEventListener('click', async (e) => {
     else          await closeTabsByUrls(urls);
 
     if (card) {
-      playCloseSound();
       animateCardOut(card);
     }
     const idx = domainGroups.indexOf(group);
@@ -997,7 +965,6 @@ document.addEventListener('click', async (e) => {
       .filter(t => t.url && !t.url.startsWith('chrome') && !t.url.startsWith('about:'))
       .map(t => t.url);
     await closeTabsByUrls(allUrls);
-    playCloseSound();
     document.querySelectorAll('#openTabsMissions .mission-card').forEach(c => {
       const r = c.getBoundingClientRect();
       shootConfetti(r.left + r.width / 2, r.top + r.height / 2);
