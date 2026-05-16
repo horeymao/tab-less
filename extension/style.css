@@ -426,7 +426,7 @@ header {
   min-height: 34px;
 }
 
-.page-chip.clickable:hover { background: var(--row-hover); }
+.page-chip.clickable:hover { background: var(--theme-bg, var(--row-hover)); }
 
 .chip-favicon {
   width: 20px;
@@ -500,7 +500,7 @@ header {
   cursor: pointer;
 }
 
-.page-chip-overflow:hover { background: var(--row-hover); }
+.page-chip-overflow:hover { background: var(--theme-bg, var(--row-hover)); }
 
 /* Card footer */
 .mission-footer {
@@ -510,7 +510,7 @@ header {
   transition: background 0.15s ease;
 }
 
-.mission-footer:hover { background: var(--row-hover); }
+.mission-footer:hover { background: var(--theme-bg, var(--row-hover)); }
 
 .mission-footer-btn {
   font-family: inherit;
