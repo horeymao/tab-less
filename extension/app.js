@@ -63,12 +63,13 @@ async function fetchOpenTabs() {
     const newtabUrl = `chrome-extension://${extensionId}/index.html`;
     const tabs = await chrome.tabs.query({});
     openTabs = tabs.map(t => ({
-      id:       t.id,
-      url:      t.url,
-      title:    t.title,
-      windowId: t.windowId,
-      active:   t.active,
-      isTabOut: t.url === newtabUrl || t.url === 'chrome://newtab/',
+      id:         t.id,
+      url:        t.url,
+      title:      t.title,
+      windowId:   t.windowId,
+      active:     t.active,
+      favIconUrl: t.favIconUrl || '',
+      isTabOut:   t.url === newtabUrl || t.url === 'chrome://newtab/',
     }));
   } catch {
     openTabs = [];
@@ -190,6 +191,21 @@ async function removeQuickLink(id) {
   return next;
 }
 
+// Chrome's local favicon cache — the same source the tab strip and history
+// use. Always resolves instantly (no network), falls back to a default globe
+// for sites Chrome hasn't seen. Requires the "favicon" permission.
+function faviconForPage(pageUrl, size = 32) {
+  if (!pageUrl) return '';
+  try {
+    const u = new URL(chrome.runtime.getURL('/_favicon/'));
+    u.searchParams.set('pageUrl', pageUrl);
+    u.searchParams.set('size', String(size));
+    return u.toString();
+  } catch {
+    return '';
+  }
+}
+
 async function renderQuickLinks() {
   const container = document.getElementById('quickLinks');
   if (!container) return;
@@ -198,14 +214,12 @@ async function renderQuickLinks() {
   const chips = links.map((link, i) => {
     const theme   = themeFor(i);
     const initial = ((link.title || link.url || '?').trim().charAt(0) || '?').toUpperCase();
-    let host = '';
-    try { host = new URL(link.url).hostname; } catch {}
-    const faviconUrl = host ? `https://www.google.com/s2/favicons?domain=${host}&sz=64` : '';
+    const faviconUrl = faviconForPage(link.url, 64);
     return `
       <a class="quick-link" draggable="true" href="${escapeAttr(link.url)}" style="${themeStyle(theme)}" data-link-id="${escapeAttr(link.id)}">
         <span class="avatar">
           <span class="avatar-letter">${escapeHtml(initial)}</span>
-          ${faviconUrl ? `<img class="avatar-img" src="${escapeAttr(faviconUrl)}" alt="" onerror="this.remove()" draggable="false">` : ''}
+          ${faviconUrl ? `<img class="avatar-img" src="${escapeAttr(faviconUrl)}" alt="" draggable="false" data-favicon-page="${escapeAttr(link.url)}" data-favicon-size="64">` : ''}
         </span>
         <span class="label">${escapeHtml(link.title)}</span>
         <button class="quick-link-remove" data-action="remove-quick-link" data-link-id="${escapeAttr(link.id)}" title="Remove shortcut">
@@ -643,13 +657,14 @@ function renderTabRow(tab, count, groupDomain) {
   const safeLabel = escapeAttr(label);
   const dupeTag   = count > 1 ? `<span class="chip-dupe-badge">${count}x</span>` : '';
 
-  let host = '';
-  try { host = new URL(tab.url).hostname; } catch {}
-  const faviconUrl = host ? `https://www.google.com/s2/favicons?domain=${host}&sz=32` : '';
+  // Prefer the live favIconUrl Chrome already fetched for the tab — it matches
+  // exactly what the tab strip shows. Fall back to Chrome's local favicon
+  // cache (same source as history) for tabs without one yet.
+  const faviconUrl = tab.favIconUrl || faviconForPage(tab.url, 32);
 
   return `
     <div class="page-chip clickable" data-action="focus-tab" data-tab-url="${safeUrl}" title="${safeLabel}">
-      ${faviconUrl ? `<img class="chip-favicon" src="${faviconUrl}" alt="" onerror="this.remove()">` : ''}
+      ${faviconUrl ? `<img class="chip-favicon" src="${escapeAttr(faviconUrl)}" alt="" data-favicon-page="${safeUrl}" data-favicon-size="32">` : ''}
       <span class="chip-text-wrap">
         <span class="chip-text">${escapeHtml(label)}</span>
         ${dupeTag}
@@ -833,6 +848,29 @@ async function renderDashboard() {
 /* ----------------------------------------------------------------
    EVENT HANDLERS — single delegate on document
    ---------------------------------------------------------------- */
+
+// Favicon fallback chain (capture phase — img error events don't bubble).
+// First failure: swap to Chrome's local favicon cache. Second failure: hide.
+// Replaces the old inline `onerror="this.remove()"` handlers that violated
+// the extension's `script-src 'self'` CSP.
+document.addEventListener('error', (e) => {
+  const img = e.target;
+  if (!(img instanceof HTMLImageElement)) return;
+  if (img.dataset.faviconState === 'failed') return;
+
+  const pageUrl = img.dataset.faviconPage;
+  if (img.dataset.faviconState !== 'fallback' && pageUrl) {
+    const size = Number(img.dataset.faviconSize) || 32;
+    const fallback = faviconForPage(pageUrl, size);
+    if (fallback && fallback !== img.src) {
+      img.dataset.faviconState = 'fallback';
+      img.src = fallback;
+      return;
+    }
+  }
+  img.dataset.faviconState = 'failed';
+  img.remove();
+}, true);
 
 document.addEventListener('click', async (e) => {
   const actionEl = e.target.closest('[data-action]');
