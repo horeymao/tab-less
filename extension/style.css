@@ -730,11 +730,8 @@ header { animation: fadeUp 0.4s ease both; }
 .quick-links { animation: fadeUp 0.4s ease 0.05s both; }
 .tab-cleanup-banner { animation: fadeUp 0.4s ease 0.1s both; }
 .active-section .section-header { animation: fadeUp 0.4s ease 0.15s both; }
-.active-section .missions .mission-card:nth-child(1) { animation: fadeUp 0.35s ease 0.20s both; }
-.active-section .missions .mission-card:nth-child(2) { animation: fadeUp 0.35s ease 0.24s both; }
-.active-section .missions .mission-card:nth-child(3) { animation: fadeUp 0.35s ease 0.28s both; }
-.active-section .missions .mission-card:nth-child(4) { animation: fadeUp 0.35s ease 0.32s both; }
-.active-section .missions .mission-card:nth-child(5) { animation: fadeUp 0.35s ease 0.36s both; }
-.active-section .missions .mission-card:nth-child(6) { animation: fadeUp 0.35s ease 0.40s both; }
-.active-section .missions .mission-card:nth-child(7) { animation: fadeUp 0.35s ease 0.42s both; }
-.active-section .missions .mission-card:nth-child(8) { animation: fadeUp 0.35s ease 0.44s both; }
+/* Stagger driven by --card-index (set inline by renderDomainCard).
+   Capped at index 12 so a long list still finishes entering in <1s. */
+.active-section .missions .mission-card {
+  animation: fadeUp 0.35s ease calc(0.20s + min(var(--card-index, 0), 12) * 0.04s) both;
+}

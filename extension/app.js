@@ -700,7 +700,7 @@ function renderDomainCard(group, index) {
   const title = isLanding ? 'Homepages' : (group.label || friendlyDomain(group.domain));
 
   return `
-    <div class="mission-card" data-domain-id="${stableId}" data-theme-color="${theme.text}" style="${themeStyle(theme)}">
+    <div class="mission-card" data-domain-id="${stableId}" data-theme-color="${theme.text}" style="${themeStyle(theme)} --card-index:${index};">
       <div class="mission-top">
         <span class="mission-name" title="${escapeAttr(title)}">${escapeHtml(title)}</span>
         <span class="open-tabs-badge">${tabCount} ${tabCount === 1 ? 'tab' : 'tabs'}</span>
