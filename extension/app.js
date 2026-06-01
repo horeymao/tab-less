@@ -261,62 +261,208 @@ function closeShortcutModal() {
    UI HELPERS — confetti, toast, empty state
    ---------------------------------------------------------------- */
 
-function shootConfetti(x, y) {
-  const particleCount = 17;
-  for (let i = 0; i < particleCount; i++) {
-    const el = document.createElement('div');
-    const isCircle = Math.random() > 0.5;
-    const size = 5 + Math.random() * 6;
-    const color = ACCENT_COLORS[Math.floor(Math.random() * ACCENT_COLORS.length)];
+// Stars / sparkles and a warm secondary palette mixed in with the
+// theme accents so each burst feels colorful and "rich".
+const FIREWORK_STARS = ['✦', '✧', '★', '✶', '✺', '❉', '✷', '✩'];
+const FIREWORK_GOLDS = ['#FFD56B', '#FFE9A8', '#FFC8E6', '#A8E6FF', '#C9B8FF', '#FFFFFF'];
 
-    el.style.cssText = `
-      position: fixed;
-      left: ${x}px;
-      top: ${y}px;
-      width: ${size}px;
-      height: ${size}px;
-      background: ${color};
-      border-radius: ${isCircle ? '50%' : '2px'};
-      pointer-events: none;
-      z-index: 9999;
-      transform: translate(-50%, -50%);
-      opacity: 1;
-    `;
-    document.body.appendChild(el);
+const _reduceMotion = window.matchMedia &&
+  window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    const angle   = Math.random() * Math.PI * 2;
-    const speed   = 60 + Math.random() * 120;
-    const vx      = Math.cos(angle) * speed;
-    const vy      = Math.sin(angle) * speed - 80;
-    const gravity = 200;
-    const startTime = performance.now();
-    const duration  = 700 + Math.random() * 200;
-
-    function frame(now) {
-      const elapsed  = (now - startTime) / 1000;
-      const progress = elapsed / (duration / 1000);
-      if (progress >= 1) { el.remove(); return; }
-      const px = vx * elapsed;
-      const py = vy * elapsed + 0.5 * gravity * elapsed * elapsed;
-      const opacity = progress < 0.5 ? 1 : 1 - (progress - 0.5) * 2;
-      const rotate  = elapsed * 200 * (isCircle ? 0 : 1);
-      el.style.transform = `translate(calc(-50% + ${px}px), calc(-50% + ${py}px)) rotate(${rotate}deg)`;
-      el.style.opacity = opacity;
-      requestAnimationFrame(frame);
-    }
-    requestAnimationFrame(frame);
+// A vivid, random color. ~40% of the time we reuse a theme accent so
+// the burst stays on-brand; the rest are freshly rolled vivid hues.
+function fireworkColor() {
+  if (Math.random() < 0.4) {
+    return ACCENT_COLORS[Math.floor(Math.random() * ACCENT_COLORS.length)];
   }
+  const h = Math.floor(Math.random() * 360);
+  const s = (72 + Math.random() * 22).toFixed(0);
+  const l = (56 + Math.random() * 12).toFixed(0);
+  return `hsl(${h} ${s}% ${l}%)`;
+}
+
+// Translucent version of a color (hex or hsl) for soft glows.
+function softGlow(color) {
+  if (color.startsWith('hsl(')) return color.replace('hsl(', 'hsla(').replace(')', ' / .5)');
+  if (color[0] === '#' && color.length === 7) return color + '80';
+  return color;
+}
+
+// One flying particle (a greeting letter or a star).
+//
+// Two-phase motion so it reads as a real firework:
+//   • Phase 1 (first ~12% of the timeline) — explodes outward fast to
+//     its full burst distance with a hard ease-out, giving the "崩发"
+//     pop at the moment of the burst.
+//   • Phase 2 (remaining ~88%) — drifts down slowly under gravity and
+//     fades out, much slower than the burst, so the rain-down lingers.
+function spawnFireworkPiece(x, y, char, opts) {
+  const el = document.createElement('span');
+  el.textContent = char;
+  el.style.cssText = `
+    position: fixed;
+    left: 0; top: 0;
+    color: ${opts.color};
+    font: 800 ${opts.size.toFixed(1)}px/1 "DM Sans", system-ui, -apple-system, sans-serif;
+    pointer-events: none;
+    user-select: none;
+    white-space: nowrap;
+    z-index: 9999;
+    will-change: transform, opacity;
+    text-shadow: ${opts.glow};
+  `;
+  document.body.appendChild(el);
+
+  // Burst vector (full radial) + gravity that builds over time.
+  const dx    = Math.cos(opts.angle) * opts.dist;
+  const dy    = Math.sin(opts.angle) * opts.dist;
+  const fall  = opts.dist * (0.9 + Math.random() * 0.3);  // ≈ burst reach
+  const drift = (Math.random() - 0.5) * 50;
+  const spin  = (Math.random() - 0.5) * opts.spin;
+  const peak  = 0.85 + Math.random() * 0.45;
+
+  // Continuous physics path — never stalls. The outward burst decelerates
+  // (drag) while gravity accelerates downward; the two velocities overlap
+  // so the combined motion is moving at every instant, with no pause at
+  // the apex. We sample the curve into keyframes and interpolate linearly.
+  //   pos(s) = origin + burst·easeOut(s) + gravity·s²
+  const eo = (s) => 1 - Math.pow(1 - s, 3);             // decelerating burst
+  const STEPS = 10;
+  const frames = [];
+  for (let i = 0; i <= STEPS; i++) {
+    const s  = i / STEPS;
+    const e  = eo(s);
+    const px = x + dx * e + drift * s * s;
+    const py = y + dy * e + fall * s * s;               // gravity grows as s²
+    // Scale: snap up to peak almost instantly, then ease gently down.
+    const sc = s < 0.12 ? 0.3 + (peak - 0.3) * (s / 0.12)
+                        : peak + (0.74 - peak) * ((s - 0.12) / 0.88);
+    // Opacity: full through most of the flight, fade only at the tail.
+    const op = s < 0.06 ? s / 0.06
+             : s > 0.72 ? Math.max(0, 1 - (s - 0.72) / 0.28)
+             : 1;
+    frames.push({
+      offset: s,
+      transform: `translate(${px.toFixed(1)}px, ${py.toFixed(1)}px) scale(${sc.toFixed(3)}) rotate(${(spin * s).toFixed(1)}deg)`,
+      opacity: op.toFixed(3),
+    });
+  }
+
+  // All pieces share one duration and fire on the same frame → single
+  // cohesive shell that bursts and falls as one, always in motion.
+  const anim = el.animate(frames, {
+    duration: 1050,
+    delay: 0,
+    easing: 'linear',
+    fill: 'forwards',
+  });
+  anim.onfinish = anim.oncancel = () => el.remove();
+}
+
+// Burst the letters of the page greeting ("Good morning" / …) plus a
+// generous spray of stars out of (x, y), in rich random colors.
+function shootConfetti(x, y) {
+  if (_reduceMotion) return;
+
+  // Soft central flash — quick, punchy, sells the detonation.
+  const flash = document.createElement('span');
+  flash.style.cssText = `
+    position: fixed; left: 0; top: 0; width: 16px; height: 16px;
+    margin: -8px 0 0 -8px; border-radius: 50%;
+    pointer-events: none; z-index: 9998; will-change: transform, opacity;
+    background: radial-gradient(circle, rgba(255,255,255,.9), rgba(255,255,255,0) 70%);
+  `;
+  document.body.appendChild(flash);
+  const fa = flash.animate([
+    { transform: `translate(${x}px, ${y}px) scale(.3)`, opacity: 1 },
+    { transform: `translate(${x}px, ${y}px) scale(9)`,  opacity: 0 },
+  ], { duration: 460, easing: 'cubic-bezier(.15,.7,.2,1)', fill: 'forwards' });
+  fa.onfinish = () => flash.remove();
+
+  const letters = getGreeting().replace(/[^A-Za-z]/g, '').split('');
+  const base    = Math.min(window.innerWidth, window.innerHeight);
+  const reach   = Math.max(180, base * 0.46);        // big burst radius
+  // Full-radial burst so the explosion fills a wide disc, not a fan.
+  const aim     = () => Math.random() * Math.PI * 2;
+  // Filled disc (not a thin ring): bias distances across the radius.
+  const radial  = (frac) => reach * (frac + Math.random() * (1 - frac));
+
+  // Greeting letters — small, bold, glowing; two copies each so the
+  // whole greeting feels present in every burst.
+  for (const ch of letters) {
+    const copies = 2 + (Math.random() < 0.35 ? 1 : 0);
+    for (let c = 0; c < copies; c++) {
+      const color = fireworkColor();
+      spawnFireworkPiece(x, y, ch, {
+        color,
+        size:  11 + Math.random() * 11,              // smaller letters
+        glow:  `0 1px 0 rgba(0,0,0,.07), 0 0 8px ${softGlow(color)}`,
+        angle: aim(),
+        dist:  radial(0.32),
+        spin:  300,
+      });
+    }
+  }
+
+  // Stars & sparkles — lots of them, tiny, gold / pastel, fast spin.
+  const starCount = 30 + Math.floor(Math.random() * 12);
+  for (let i = 0; i < starCount; i++) {
+    const color = FIREWORK_GOLDS[Math.floor(Math.random() * FIREWORK_GOLDS.length)];
+    spawnFireworkPiece(x, y, FIREWORK_STARS[Math.floor(Math.random() * FIREWORK_STARS.length)], {
+      color,
+      size:  7 + Math.random() * 10,                 // smaller stars
+      glow:  `0 0 5px ${softGlow(color)}, 0 0 11px ${softGlow(color)}`,
+      angle: aim(),
+      dist:  radial(0.22),
+      spin:  720,
+    });
+  }
+}
+
+// Smoothly fade + collapse an element's own box (height/margin/padding)
+// to zero, then remove it. Animating the box — not just opacity — lets
+// the surrounding column-flow slide closed instead of snapping, so there's
+// no jarring re-layout jump when a chip or card disappears.
+function collapseAndRemove(el, done) {
+  if (!el || el._collapsing) { done && done(); return; }
+  el._collapsing = true;
+
+  const h = el.getBoundingClientRect().height;
+  const cs = getComputedStyle(el);
+  // Lock current box so we can animate it down to 0.
+  el.style.overflow      = 'hidden';
+  el.style.height        = h + 'px';
+  el.style.marginTop     = cs.marginTop;
+  el.style.marginBottom  = cs.marginBottom;
+  el.style.paddingTop    = cs.paddingTop;
+  el.style.paddingBottom = cs.paddingBottom;
+  el.style.willChange    = 'height, opacity, transform';
+
+  const anim = el.animate([
+    { height: h + 'px',
+      marginTop: cs.marginTop, marginBottom: cs.marginBottom,
+      paddingTop: cs.paddingTop, paddingBottom: cs.paddingBottom,
+      opacity: 1, transform: 'scale(1)' },
+    { offset: 0.4, opacity: 0, transform: 'scale(.95)' },
+    { height: '0px',
+      marginTop: '0px', marginBottom: '0px',
+      paddingTop: '0px', paddingBottom: '0px',
+      opacity: 0, transform: 'scale(.95)' },
+  ], { duration: 340, easing: 'cubic-bezier(.4,0,.2,1)', fill: 'forwards' });
+
+  anim.onfinish = anim.oncancel = () => {
+    el.remove();
+    done && done();
+  };
 }
 
 function animateCardOut(card) {
   if (!card) return;
   const rect = card.getBoundingClientRect();
   shootConfetti(rect.left + rect.width / 2, rect.top + rect.height / 2);
-  card.classList.add('closing');
-  setTimeout(() => {
-    card.remove();
-    checkAndShowEmptyState();
-  }, 280);
+  // Collapse the card's box so its column neighbors slide up smoothly
+  // rather than the whole masonry re-packing in one jump.
+  collapseAndRemove(card, checkAndShowEmptyState);
 }
 
 function showToast(message, color) {
@@ -947,29 +1093,30 @@ document.addEventListener('click', async (e) => {
     const url = actionEl.dataset.tabUrl;
     if (!url) return;
 
-    const allTabs = await chrome.tabs.query({});
-    const match   = allTabs.find(t => t.url === url);
-    if (match) await chrome.tabs.remove(match.id);
-    await fetchOpenTabs();
-
+    // 1) Instant visual feedback — fire the burst + collapse the chip
+    //    right away, before any await, so there's zero click latency.
     const chip = actionEl.closest('.page-chip');
     if (chip) {
       const rect = chip.getBoundingClientRect();
       shootConfetti(rect.left + rect.width / 2, rect.top + rect.height / 2);
-      chip.style.transition = 'opacity 0.2s, transform 0.2s';
-      chip.style.opacity    = '0';
-      chip.style.transform  = 'scale(0.92)';
-      setTimeout(() => {
-        chip.remove();
+      collapseAndRemove(chip, () => {
+        // After the chip is gone, fold away any card left with no tabs.
         document.querySelectorAll('.mission-card').forEach(c => {
           if (c.querySelectorAll('.page-chip[data-action="focus-tab"]').length === 0) {
             animateCardOut(c);
           }
         });
-      }, 200);
+      });
     }
-
     showToast('Tab closed', cardTheme);
+
+    // 2) Do the actual Chrome work in the background — don't block the UI.
+    (async () => {
+      const allTabs = await chrome.tabs.query({});
+      const match   = allTabs.find(t => t.url === url);
+      if (match) await chrome.tabs.remove(match.id);
+      await fetchOpenTabs();
+    })();
     return;
   }
 
